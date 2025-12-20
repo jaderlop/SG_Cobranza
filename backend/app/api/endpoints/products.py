@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from app.core.database import get_db
 from app.models.product import Product
@@ -22,48 +22,61 @@ def get_stock_status(product: Product) -> str:
 
 
 @router.get("/", response_model=List[ProductWithStock])
-async def get_products(
+def get_products(
     skip: int = 0,
     limit: int = 100,
-    category: str = None,
+    category: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """Get all products"""
+    current_user: User = Depends(get_current_user)):
     query = db.query(Product)
-    
+
     if category:
         query = query.filter(Product.category == category)
-    
+
     products = query.offset(skip).limit(limit).all()
-    
-    # Add stock status
+
     result = []
     for product in products:
-        product_dict = ProductWithStock.model_validate(product).model_dump()
-        product_dict['stock_status'] = get_stock_status(product)
-        result.append(ProductWithStock(**product_dict))
-    
+        result.append(
+            ProductWithStock(
+                id=product.id,
+                name=product.name,
+                sku=product.sku,
+                category=product.category,
+                price=float(product.price),
+                stock_quantity=product.stock_quantity,
+                min_stock_level=product.min_stock_level,
+                is_active=bool(product.is_active),
+                stock_status=get_stock_status(product),
+                created_at=product.created_at,
+            )
+        )
+
     return result
 
 
 @router.get("/{product_id}", response_model=ProductWithStock)
-async def get_product(
+def get_product(
     product_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """Get a specific product by ID"""
+    current_user: User = Depends(get_current_user)):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found"
-        )
-    
-    product_dict = ProductWithStock.model_validate(product).model_dump()
-    product_dict['stock_status'] = get_stock_status(product)
-    return ProductWithStock(**product_dict)
+        raise HTTPException(404, "Product not found")
+
+    return ProductWithStock(
+        id=product.id,
+        name=product.name,
+        sku=product.sku,
+        category=product.category,
+        price=float(product.price),
+        stock_quantity=product.stock_quantity,
+        min_stock_level=product.min_stock_level,
+        is_active=bool(product.is_active),
+        stock_status=get_stock_status(product),
+        created_at=product.created_at,
+    )
+
 
 
 @router.post("/", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)

@@ -1,54 +1,59 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 from typing import Optional
-from datetime import datetime
 from decimal import Decimal
-
+from datetime import datetime
 
 class ProductBase(BaseModel):
-    """Base product schema"""
     name: str
-    sku: Optional[str] = None
     description: Optional[str] = None
     category: Optional[str] = None
     price: Decimal
+    unit: str = "unit"
+
+
+class ProductCreate(ProductBase):
+    sku: Optional[str] = None
     cost: Optional[Decimal] = None
     stock_quantity: int = 0
-    unit: str = 'unit'
     min_stock_level: int = 0
     max_stock_level: Optional[int] = None
 
 
-class ProductCreate(ProductBase):
-    """Schema for creating a product"""
-    pass
-
-
 class ProductUpdate(BaseModel):
-    """Schema for updating a product"""
     name: Optional[str] = None
-    sku: Optional[str] = None
     description: Optional[str] = None
     category: Optional[str] = None
     price: Optional[Decimal] = None
     cost: Optional[Decimal] = None
     stock_quantity: Optional[int] = None
-    unit: Optional[str] = None
     min_stock_level: Optional[int] = None
     max_stock_level: Optional[int] = None
     is_active: Optional[bool] = None
 
 
 class ProductResponse(ProductBase):
-    """Schema for product response"""
     id: int
-    is_active: bool
+    sku: Optional[str]
+    stock_quantity: int
+    is_active: Optional[bool] = True
     created_at: datetime
-    updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
 
-class ProductWithStock(ProductResponse):
-    """Product with stock status"""
-    stock_status: str  # 'OK', 'Low Stock', 'Out of Stock'
+
+class ProductWithStock(BaseModel):
+    id: int
+    name: str
+    sku: Optional[str]
+    category: Optional[str]
+    price: float
+    stock_quantity: int
+    min_stock_level: int
+    is_active: bool
+    stock_status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

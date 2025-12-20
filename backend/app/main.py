@@ -1,7 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.endpoints import auth, clients, products
+from app.core.database import engine, Base
+import app.models
+from app.api.endpoints import auth, clients, products, users, sales, purchases
+
+print("MODELOS CARGADOS:")
+for t in Base.metadata.tables:
+    print(" -", t)
+
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -25,6 +32,9 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(clients.router, prefix="/api/clients", tags=["Clients"])
 app.include_router(products.router, prefix="/api/products", tags=["Products"])
+app.include_router(users.router, prefix="/api/users", tags=["Users"])
+app.include_router(sales.router, prefix="/api/sales", tags=["Sales"])
+app.include_router(purchases.router, prefix="/api/purchases", tags=["Purchase"])
 
 
 @app.get("/")
