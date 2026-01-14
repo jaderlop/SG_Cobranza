@@ -1,0 +1,310 @@
+================================================================================
+ESTRUCTURA COMPLETA DEL PROYECTO - SMB FINANCIAL MANAGEMENT
+Sistema de Gestión Financiera para PyMEs
+================================================================================
+
+SG_gastos/
+│
+├── backend/                                    # API Backend con FastAPI
+│   ├── app/
+│   │   ├── __init__.py                        # Inicializador del paquete app
+│   │   ├── main.py                            # Aplicación FastAPI principal, rutas y CORS
+│   │   │
+│   │   ├── api/
+│   │   │   ├── __init__.py                    # Inicializador del paquete api
+│   │   │   ├── deps.py                        # Dependencias: get_db, get_current_user, require_role
+│   │   │   └── endpoints/
+│   │   │       ├── __init__.py                # Inicializador de endpoints
+│   │   │       ├── auth.py                    # POST /login, /logout, GET /me
+│   │   │       ├── users.py                   # POST /users - crear usuarios
+│   │   │       ├── clients.py                 # CRUD /clients - gestión de clientes
+│   │   │       ├── suppliers.py               # CRUD /suppliers - gestión de proveedores
+│   │   │       ├── products.py                # CRUD /products - gestión de productos
+│   │   │       ├── purchases.py               # POST /purchases - registrar compras, incrementa stock
+│   │   │       ├── sales.py                   # POST /sales - registrar ventas, decrementa stock
+│   │   │       ├── invoices.py                # CRUD /invoices - facturas con OCR
+│   │   │       ├── income.py                  # CRUD /income - registro de ingresos
+│   │   │       ├── expenses.py                # CRUD /expenses - registro de egresos
+│   │   │       ├── inventory.py               # GET /inventory - movimientos de inventario
+│   │   │       ├── reports.py                 # GET /reports - generación de reportes PDF/Excel
+│   │   │       └── dashboard.py               # GET /kpis, /sales-by-day, /purchases-by-day
+│   │   │
+│   │   ├── core/
+│   │   │   ├── __init__.py                    # Inicializador del core
+│   │   │   ├── config.py                      # Settings con Pydantic: DB_URL, SECRET_KEY, CORS
+│   │   │   ├── database.py                    # Engine SQLAlchemy, SessionLocal, get_db()
+│   │   │   └── security.py                    # hash_password(), verify_password(), create_token()
+│   │   │
+│   │   ├── models/                            # Modelos SQLAlchemy (tablas DB)
+│   │   │   ├── __init__.py                    # Exporta todos los modelos
+│   │   │   ├── role.py                        # Tabla roles: id, name, description
+│   │   │   ├── user.py                        # Tabla users: id, username, email, password_hash, role_id
+│   │   │   ├── client.py                      # Tabla clients: id, name, email, phone, tax_id
+│   │   │   ├── supplier.py                    # Tabla suppliers: id, name, email, phone, tax_id
+│   │   │   ├── product.py                     # Tabla products: id, name, sku, price, cost, stock
+│   │   │   ├── purchase.py                    # Tabla purchases: id, supplier_id, user_id, total
+│   │   │   ├── purchase_item.py               # Tabla purchase_items: id, purchase_id, product_id, qty, cost
+│   │   │   ├── sale.py                        # Tabla sales: id, user_id, total_amount
+│   │   │   ├── sale_item.py                   # Tabla sale_items: id, sale_id, product_id, qty, price
+│   │   │   ├── invoice.py                     # Tabla invoices: id, number, client_id, total
+│   │   │   ├── income.py                      # Tabla income: id, amount, category, date
+│   │   │   ├── expense.py                     # Tabla expenses: id, amount, category, date
+│   │   │   └── inventory.py                   # Tabla inventory_movements: id, product_id, qty, type
+│   │   │
+│   │   ├── schemas/                           # Schemas Pydantic (validación request/response)
+│   │   │   ├── __init__.py                    # Inicializador de schemas
+│   │   │   ├── user.py                        # UserCreate, UserResponse, Token
+│   │   │   ├── client.py                      # ClientCreate, ClientUpdate, ClientResponse
+│   │   │   ├── supplier.py                    # SupplierCreate, SupplierUpdate, SupplierResponse
+│   │   │   ├── product.py                     # ProductCreate, ProductUpdate, ProductResponse
+│   │   │   ├── purchase.py                    # PurchaseCreate, PurchaseItemCreate, PurchaseResponse
+│   │   │   ├── sale.py                        # SaleCreate, SaleItemCreate, SaleResponse
+│   │   │   ├── dashboard.py                   # KPIResponse, DailyAmount, ProductRanking
+│   │   │   ├── invoice.py                     # InvoiceCreate, InvoiceResponse
+│   │   │   ├── income.py                      # IncomeCreate, IncomeResponse
+│   │   │   ├── expense.py                     # ExpenseCreate, ExpenseResponse
+│   │   │   ├── inventory.py                   # InventoryMovementResponse
+│   │   │   └── report.py                      # ReportRequest, ReportResponse
+│   │   │
+│   │   ├── services/                          # Lógica de negocio
+│   │   │   ├── __init__.py                    # Inicializador de services
+│   │   │   ├── dashboard_service.py           # get_kpis(), sales_by_day(), purchases_by_day()
+│   │   │   ├── auth_service.py                # authenticate_user(), create_access_token()
+│   │   │   ├── invoice_service.py             # process_invoice(), extract_data()
+│   │   │   ├── report_service.py              # generate_sales_report(), generate_pdf()
+│   │   │   ├── export_service.py              # export_to_pdf(), export_to_excel()
+│   │   │   └── inventory_service.py           # update_stock(), get_stock_movements()
+│   │   │
+│   │   ├── ocr/                               # Módulo OCR con Tesseract
+│   │   │   ├── __init__.py                    # Exporta OCREngine
+│   │   │   ├── ocr_engine.py                  # OCREngine class: process_invoice(), extract_text()
+│   │   │   ├── image_processor.py             # preprocess_image(), enhance_contrast()
+│   │   │   └── data_normalizer.py             # normalize_date(), normalize_amount()
+│   │   │
+│   │   ├── utils/                             # Utilidades generales
+│   │   │   ├── __init__.py                    # Inicializador de utils
+│   │   │   ├── pdf_generator.py               # generate_pdf_report(), create_invoice_pdf()
+│   │   │   ├── excel_generator.py             # generate_excel_report(), export_data()
+│   │   │   └── validators.py                  # validate_email(), validate_tax_id()
+│   │   │
+│   │   └── tests/                             # Tests con pytest
+│   │       ├── __init__.py                    # Inicializador de tests
+│   │       ├── conftest.py                    # Fixtures: test_db, test_client
+│   │       ├── test_main.py                   # Tests de endpoints raíz y health
+│   │       ├── test_auth.py                   # Tests de login, logout, autenticación
+│   │       ├── test_clients.py                # Tests CRUD de clientes
+│   │       ├── test_products.py               # Tests CRUD de productos
+│   │       ├── test_invoices.py               # Tests de facturas
+│   │       └── test_ocr.py                    # Tests del motor OCR
+│   │
+│   ├── uploads/                               # Archivos subidos por usuarios
+│   │   └── invoices/                          # Imágenes de facturas para OCR
+│   │
+│   ├── alembic/                               # Migraciones de base de datos
+│   │   ├── versions/                          # Versiones de migraciones
+│   │   ├── env.py                             # Configuración de Alembic
+│   │   └── alembic.ini                        # Archivo de configuración Alembic
+│   │
+│   ├── requirements.txt                       # Dependencias Python del backend
+│   ├── .env.example                           # Ejemplo de variables de entorno
+│   ├── .env                                   # Variables de entorno (no en git)
+│   ├── Dockerfile                             # Imagen Docker para backend
+│   ├── docker-compose.yml                     # Compose específico del backend
+│   └── README.md                              # Documentación del backend
+│
+├── frontend/                                  # Frontend con Next.js 14
+│   ├── src/
+│   │   ├── app/                               # App Router de Next.js
+│   │   │   ├── layout.tsx                     # Layout raíz, envuelve con AuthProvider
+│   │   │   ├── page.tsx                       # Home, redirect a /dashboard o /login
+│   │   │   ├── globals.css                    # Estilos globales Tailwind
+│   │   │   │
+│   │   │   ├── auth/                          # Rutas de autenticación
+│   │   │   │   ├── layout.tsx                 # Layout para páginas de auth
+│   │   │   │   └── login/
+│   │   │   │       └── page.tsx               # Página de login con formulario
+│   │   │   │
+│   │   │   └── dashboard/                     # Rutas protegidas del dashboard
+│   │   │       ├── layout.tsx                 # Layout con sidebar y header
+│   │   │       ├── page.tsx                   # Dashboard principal: KPIs + gráficos
+│   │   │       │
+│   │   │       ├── clients/
+│   │   │       │   └── page.tsx               # Tabla CRUD de clientes
+│   │   │       │
+│   │   │       ├── suppliers/
+│   │   │       │   └── page.tsx               # Tabla CRUD de proveedores (pendiente)
+│   │   │       │
+│   │   │       ├── products/
+│   │   │       │   └── page.tsx               # Tabla CRUD de productos
+│   │   │       │
+│   │   │       ├── sales/
+│   │   │       │   └── page.tsx               # Formulario registro de ventas + historial
+│   │   │       │
+│   │   │       ├── purchases/
+│   │   │       │   └── page.tsx               # Formulario registro de compras + historial
+│   │   │       │
+│   │   │       ├── invoices/
+│   │   │       │   └── page.tsx               # Gestión de facturas (pendiente)
+│   │   │       │
+│   │   │       ├── income/
+│   │   │       │   └── page.tsx               # Gestión de ingresos (pendiente)
+│   │   │       │
+│   │   │       ├── expenses/
+│   │   │       │   └── page.tsx               # Gestión de egresos (pendiente)
+│   │   │       │
+│   │   │       ├── inventory/
+│   │   │       │   └── page.tsx               # Estado de inventario (pendiente)
+│   │   │       │
+│   │   │       └── reports/
+│   │   │           └── page.tsx               # Reportes y exportación (pendiente)
+│   │   │
+│   │   ├── components/                        # Componentes React reutilizables
+│   │   │   ├── ui/                            # Componentes UI básicos (pendiente)
+│   │   │   ├── forms/                         # Componentes de formularios (pendiente)
+│   │   │   ├── charts/                        # Componentes de gráficos (pendiente)
+│   │   │   ├── tables/                        # Tablas reutilizables (pendiente)
+│   │   │   └── layout/                        # Componentes de layout (pendiente)
+│   │   │
+│   │   ├── lib/
+│   │   │   └── api.ts                         # Cliente API axios: authAPI, clientsAPI, etc.
+│   │   │
+│   │   ├── hooks/                             # Custom hooks (pendiente)
+│   │   │
+│   │   ├── context/
+│   │   │   └── AuthContext.tsx                # Context: useAuth(), login(), logout()
+│   │   │
+│   │   └── types/                             # Tipos TypeScript (pendiente)
+│   │
+│   ├── public/                                # Archivos estáticos públicos
+│   │   ├── next.svg                           # Logo Next.js
+│   │   └── vercel.svg                         # Logo Vercel
+│   │
+│   ├── package.json                           # Dependencias npm y scripts
+│   ├── package-lock.json                      # Lock de versiones npm
+│   ├── tsconfig.json                          # Configuración TypeScript
+│   ├── next.config.js                         # Configuración Next.js
+│   ├── tailwind.config.js                     # Configuración Tailwind CSS
+│   ├── postcss.config.js                      # Configuración PostCSS
+│   ├── .eslintrc.json                         # Configuración ESLint
+│   ├── .env.example                           # Ejemplo de variables de entorno
+│   ├── .env.local                             # Variables de entorno (no en git)
+│   ├── Dockerfile                             # Imagen Docker para frontend
+│   └── README.md                              # Documentación del frontend
+│
+├── database/                                  # Base de datos PostgreSQL
+│   ├── init.sql                               # Schema completo: CREATE TABLE de 14 tablas
+│   ├── seeds.sql                              # Datos de prueba: roles, users, productos
+│   ├── migrations/
+│   │   └── 001_initial_schema.sql             # Primera migración del schema
+│   └── README.md                              # Documentación de la base de datos
+│
+├── docs/                                      # Documentación del proyecto
+│   ├── arquitectura.md                        # Diseño arquitectónico del sistema
+│   ├── api_endpoints.md                       # Documentación completa de API
+│   ├── diagramas/                             # Diagramas visuales
+│   │   ├── er_diagram.png                     # Diagrama entidad-relación
+│   │   ├── architecture.png                   # Diagrama de arquitectura
+│   │   └── flujo_ocr.png                      # Flujo del proceso OCR
+│   ├── manual_usuario.md                      # Manual para usuarios finales
+│   ├── guia_despliegue.md                     # Guía para deployment
+│   └── guia_desarrollo.md                     # Guía para desarrolladores
+│
+├── scripts/                                   # Scripts de utilidad
+│   ├── deploy.sh                              # Script de despliegue automático
+│   ├── start_dev.sh                           # Inicia backend + frontend en dev
+│   ├── backup_db.sh                           # Hace backup de PostgreSQL
+│   ├── restore_db.sh                          # Restaura backup de BD
+│   └── run_tests.sh                           # Ejecuta todos los tests
+│
+├── .gitignore                                 # Archivos a ignorar por Git
+├── .dockerignore                              # Archivos a ignorar por Docker
+├── docker-compose.yml                         # Orquestación: postgres + backend + frontend
+├── docker-compose.dev.yml                     # Compose para desarrollo
+├── README.md                                  # README principal del proyecto
+├── REVIEW_SUMMARY.md                          # Resumen de revisión técnica
+├── ARCHIVOS_NUEVOS_FRONTEND.md                # Lista de archivos nuevos frontend
+├── estructura_proyecto.txt                    # Estructura original del proyecto
+├── estructura_nueva.txt                       # Este archivo
+└── LICENSE                                    # Licencia del proyecto (MIT)
+
+================================================================================
+ARCHIVOS CLAVE DEL PROYECTO
+================================================================================
+
+BACKEND (Python/FastAPI):
+✓ backend/app/main.py                          - Punto de entrada, configura FastAPI
+✓ backend/app/api/deps.py                      - Dependencias compartidas
+✓ backend/app/api/endpoints/*.py               - Endpoints REST organizados
+✓ backend/app/core/config.py                   - Configuración centralizada
+✓ backend/app/core/security.py                 - JWT y seguridad
+✓ backend/app/models/*.py                      - 14 modelos SQLAlchemy
+✓ backend/app/schemas/*.py                     - Validación Pydantic
+✓ backend/app/services/dashboard_service.py    - Lógica KPIs
+✓ backend/requirements.txt                     - Dependencias Python
+
+FRONTEND (Next.js/React):
+✓ frontend/src/app/layout.tsx                  - Layout raíz con providers
+✓ frontend/src/app/dashboard/layout.tsx        - Layout protegido
+✓ frontend/src/app/dashboard/page.tsx          - Dashboard con gráficos
+✓ frontend/src/context/AuthContext.tsx         - Manejo global de auth
+✓ frontend/src/lib/api.ts                      - Cliente API axios
+✓ frontend/package.json                        - Dependencias npm
+
+BASE DE DATOS:
+✓ database/init.sql                            - Schema completo PostgreSQL
+✓ database/seeds.sql                           - Datos iniciales
+
+CONFIGURACIÓN:
+✓ docker-compose.yml                           - Orquestación completa
+✓ .env.example                                 - Template de variables
+
+DOCUMENTACIÓN:
+✓ README.md                                    - Documentación principal
+✓ REVIEW_SUMMARY.md                            - Revisión técnica
+✓ estructura_nueva.txt                         - Esta estructura
+
+================================================================================
+RESUMEN TÉCNICO
+================================================================================
+
+BACKEND:
+- Framework: FastAPI 0.109+
+- ORM: SQLAlchemy 2.0
+- Auth: JWT (python-jose)
+- OCR: Tesseract
+- DB: PostgreSQL 15+
+- Testing: pytest
+
+FRONTEND:
+- Framework: Next.js 14 (App Router)
+- Language: TypeScript
+- Styling: Tailwind CSS
+- Charts: Chart.js
+- HTTP: Axios
+- State: React Context
+
+DATABASE:
+- Engine: PostgreSQL 15+
+- Tables: 14 tablas relacionales
+- Features: Triggers, Indexes, Foreign Keys
+
+DEPLOYMENT:
+- Docker + Docker Compose
+- Scripts bash de automatización
+
+MÓDULOS IMPLEMENTADOS:
+✅ Autenticación (JWT)
+✅ Dashboard (KPIs + gráficos)
+✅ Clientes (CRUD)
+✅ Productos (CRUD)
+✅ Ventas (registro + historial)
+✅ Compras (registro + historial)
+⚠️  Proveedores (backend listo, frontend pendiente)
+⚠️  Facturas con OCR (pendiente)
+⚠️  Ingresos/Egresos (pendiente)
+⚠️  Inventario (pendiente)
+⚠️  Reportes (pendiente)
+
+================================================================================
+FIN DE ESTRUCTURA
+================================================================================

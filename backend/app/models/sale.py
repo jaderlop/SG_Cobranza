@@ -8,9 +8,5 @@ class Sale(Base):
     id = Column(Integer, primary_key=True, index=True)
     total_amount = Column(Numeric(15, 2), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
-
-    # Quién hizo la venta (usuario)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-
-    # Relaciones
     items = relationship("SaleItem", back_populates="sale", cascade="all, delete-orphan")

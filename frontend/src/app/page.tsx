@@ -1,25 +1,28 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Home() {
     const router = useRouter();
+    const { isAuthenticated, loading } = useAuth();
 
     useEffect(() => {
-        // Redirect to dashboard or login based on auth status
-        const token = localStorage.getItem('access_token');
-        if (token) {
-            router.push('/dashboard');
-        } else {
-            router.push('/auth/login');
+        if (!loading) {
+            if (isAuthenticated) {
+                router.push('/dashboard');
+            } else {
+                router.push('/auth/login');
+            }
         }
-    }, [router]);
+    }, [isAuthenticated, loading, router]);
 
     return (
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center min-h-screen bg-gray-50">
             <div className="text-center">
-                <h1 className="text-2xl font-bold">Loading...</h1>
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <h2 className="text-xl font-semibold mt-4 text-gray-700">Cargando...</h2>
             </div>
         </div>
     );

@@ -27,16 +27,23 @@ apiClient.interceptors.request.use(
 // Response interceptor to handle errors
 apiClient.interceptors.response.use(
     (response) => response,
-    async (error) => {
+    (error) => {
         if (error.response?.status === 401) {
-            // Unauthorized - clear token and redirect to login
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            window.location.href = '/auth/login';
+            console.warn("⚠️ 401 Unauthorized – limpiando sesión");
+
+            if (typeof window !== "undefined") {
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("refresh_token");
+
+                // redirigir al login
+                window.location.href = "/auth/login";
+            }
         }
+
         return Promise.reject(error);
     }
 );
+
 
 // Authentication API
 export const authAPI = {
@@ -118,6 +125,58 @@ export const productsAPI = {
 
     delete: async (id: number) => {
         const response = await apiClient.delete(`/products/${id}`);
+        return response.data;
+    },
+};
+
+// Sales API
+export const salesAPI = {
+    getAll: async () => {
+        const response = await apiClient.get('/sales');
+        return response.data;
+    },
+
+    create: async (data: { items: Array<{ product_id: number; quantity: number }> }) => {
+        const response = await apiClient.post('/sales', data);
+        return response.data;
+    },
+};
+
+// Purchases API
+export const purchasesAPI = {
+    getAll: async () => {
+        const response = await apiClient.get('/purchases');
+        return response.data;
+    },
+
+    create: async (data: {
+        supplier_id: number;
+        items: Array<{ product_id: number; quantity: number; unit_cost: number }>
+    }) => {
+        const response = await apiClient.post('/purchases', data);
+        return response.data;
+    },
+};
+
+// Dashboard API
+export const dashboardAPI = {
+    getKPIs: async () => {
+        const response = await apiClient.get('/dashboard/kpis');
+        return response.data;
+    },
+
+    getSalesByDay: async () => {
+        const response = await apiClient.get('/dashboard/sales-by-day');
+        return response.data;
+    },
+
+    getPurchasesByDay: async () => {
+        const response = await apiClient.get('/dashboard/purchases-by-day');
+        return response.data;
+    },
+
+    getTopProducts: async () => {
+        const response = await apiClient.get('/dashboard/top-products');
         return response.data;
     },
 };

@@ -16,9 +16,9 @@ INSERT INTO roles (name, description) VALUES
 -- Password: admin123 (hashed with bcrypt)
 -- =====================================================
 INSERT INTO users (username, email, password_hash, role_id, first_name, last_name) VALUES
-    ('admin', 'admin@company.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5NU7K8zJg7CTi', 1, 'System', 'Administrator'),
-    ('contador', 'contador@company.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5NU7K8zJg7CTi', 2, 'Maria', 'Gonzalez'),
-    ('vendedor', 'vendedor@company.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5NU7K8zJg7CTi', 3, 'Carlos', 'Rodriguez');
+    ('admin', 'admin@company.com', 'admin123', 1, 'System', 'Administrator'),
+    ('contador', 'contador@company.com', 'admin123', 2, 'Maria', 'Gonzalez'),
+    ('vendedor', 'vendedor@company.com', 'admin123', 3, 'Carlos', 'Rodriguez');
 
 -- =====================================================
 -- SEED SAMPLE CLIENTS

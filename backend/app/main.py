@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
 import app.models
-from app.api.endpoints import auth, clients, products, users, sales, purchases
+from app.api.endpoints import auth, clients, products, users, sales, purchases, dashboard 
 
 print("MODELOS CARGADOS:")
 for t in Base.metadata.tables:
@@ -35,6 +35,7 @@ app.include_router(products.router, prefix="/api/products", tags=["Products"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
 app.include_router(sales.router, prefix="/api/sales", tags=["Sales"])
 app.include_router(purchases.router, prefix="/api/purchases", tags=["Purchase"])
+app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 
 
 @app.get("/")
