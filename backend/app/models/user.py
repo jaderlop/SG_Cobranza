@@ -20,3 +20,6 @@ class User(Base):
     
     # Relationships
     role = relationship("Role", backref="users")
+
+
+
