@@ -1,16 +1,23 @@
+from app.services.client_service import update_client_service
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-
-from app.core.database import get_db
-from app.models.client import Client
-from app.schemas.client import ClientCreate, ClientUpdate, ClientResponse
 from app.api.deps import get_current_user
 from app.models.user import User
 
+from app.services.client_service import (
+    get_clients_service,
+    get_client_by_id_service,
+    create_new_client_service,
+    update_client_service
+)   
+
+from app.core.database import get_db
+from app.schemas.client import ClientCreate, ClientUpdate, ClientResponse
+
 router = APIRouter()
 
-
+# Get all clients
 @router.get("/", response_model=List[ClientResponse])
 async def get_clients(
     skip: int = 0,
@@ -18,11 +25,9 @@ async def get_clients(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get all clients"""
-    clients = db.query(Client).offset(skip).limit(limit).all()
-    return clients
+    return get_clients_service(db, skip, limit)
 
-
+# Get client by id
 @router.get("/{client_id}", response_model=ClientResponse)
 async def get_client(
     client_id: int,
@@ -30,15 +35,9 @@ async def get_client(
     current_user: User = Depends(get_current_user)
 ):
     """Get a specific client by ID"""
-    client = db.query(Client).filter(Client.id == client_id).first()
-    if not client:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Client not found"
-        )
-    return client
+    return get_client_by_id_service(db, client_id)
 
-
+# Create client
 @router.post("/", response_model=ClientResponse, status_code=status.HTTP_201_CREATED)
 async def create_client(
     client_data: ClientCreate,
@@ -46,22 +45,9 @@ async def create_client(
     current_user: User = Depends(get_current_user)
 ):
     """Create a new client"""
-    # Check if tax_id already exists
-    if client_data.tax_id:
-        existing = db.query(Client).filter(Client.tax_id == client_data.tax_id).first()
-        if existing:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Client with this tax ID already exists"
-            )
-    
-    client = Client(**client_data.model_dump())
-    db.add(client)
-    db.commit()
-    db.refresh(client)
-    return client
+    return(create_new_client_service(db, client_data))
 
-
+# Update client
 @router.put("/{client_id}", response_model=ClientResponse)
 async def update_client(
     client_id: int,
@@ -70,23 +56,9 @@ async def update_client(
     current_user: User = Depends(get_current_user)
 ):
     """Update a client"""
-    client = db.query(Client).filter(Client.id == client_id).first()
-    if not client:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Client not found"
-        )
-    
-    # Update only provided fields
-    update_data = client_data.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(client, field, value)
-    
-    db.commit()
-    db.refresh(client)
-    return client
+    return(update_client_service(db, client_id, client_data))
 
-
+# Delete client
 @router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_client(
     client_id: int,
@@ -94,13 +66,4 @@ async def delete_client(
     current_user: User = Depends(get_current_user)
 ):
     """Delete a client"""
-    client = db.query(Client).filter(Client.id == client_id).first()
-    if not client:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Client not found"
-        )
-    
-    db.delete(client)
-    db.commit()
-    return None
+    return(delete_client_service(db, client_id))

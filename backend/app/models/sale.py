@@ -24,5 +24,5 @@ class Sale(Base):
     # Relationships
     client = relationship("Client", backref="sales")
     user = relationship("User", backref="sales")
-    items = relationship("SaleItem", backref="sales")
+    items = relationship("SaleItem", back_populates="sale", cascade="all, delete-orphan")
     

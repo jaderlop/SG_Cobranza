@@ -22,7 +22,18 @@ class ClientBase(BaseModel):
 
 class ClientCreate(ClientBase):
     """Schema for creating a client"""
-    pass
+    name: str
+    tax_id: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: Optional[str] = None
+    postal_code: Optional[str] = None
+    payment_terms: Optional[str] = None
+    credit_limit: Optional[Decimal] = None
+    notes: Optional[str] = None
 
 
 class ClientUpdate(BaseModel):

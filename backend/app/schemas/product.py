@@ -42,17 +42,16 @@ class ProductResponse(ProductBase):
         from_attributes = True
 
 
-
 class ProductWithStock(BaseModel):
     id: int
     name: str
-    sku: Optional[str]
-    category: Optional[str]
-    price: float
+    sku: str
+    category: Optional[str] = None
+    price: Decimal
     stock_quantity: int
+    stock_status: str
     min_stock_level: int
     is_active: bool
-    stock_status: str
     created_at: datetime
 
     class Config:
