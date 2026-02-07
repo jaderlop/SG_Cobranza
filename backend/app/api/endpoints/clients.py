@@ -9,7 +9,8 @@ from app.services.client_service import (
     get_clients_service,
     get_client_by_id_service,
     create_new_client_service,
-    update_client_service
+    update_client_service,
+    delete_client_service
 )   
 
 from app.core.database import get_db
@@ -67,3 +68,5 @@ async def delete_client(
 ):
     """Delete a client"""
     return(delete_client_service(db, client_id))
+
+    

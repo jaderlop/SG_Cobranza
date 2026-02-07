@@ -136,12 +136,32 @@ export const salesAPI = {
         return response.data;
     },
 
-    create: async (data: { items: Array<{ product_id: number; quantity: number }> }) => {
-        const response = await apiClient.post('/sales', data);
+    create: async (data: {
+        client_id: number;
+        sale_date: string;
+        due_date?: string;
+        status?: string;
+        payment_status?: string;
+        notes?: string;
+        items: Array<{
+            product_id: number;
+            quantity: number;
+            unit_price: number;
+        }>;
+    }) => {
+        const payload = {
+            sale_number: `SALE-${Date.now()}`,
+            status: 'pending',
+            payment_status: 'unpaid',
+            ...data,
+        };
+
+        const response = await apiClient.post('/sales', payload);
         return response.data;
     },
 };
 
+// Purchases API
 // Purchases API
 export const purchasesAPI = {
     getAll: async () => {
@@ -151,32 +171,69 @@ export const purchasesAPI = {
 
     create: async (data: {
         supplier_id: number;
-        items: Array<{ product_id: number; quantity: number; unit_cost: number }>
+        purchase_date: string;
+        due_date?: string;
+        status?: string;
+        notes?: string;
+        items: Array<{
+            product_id: number;
+            quantity: number;
+            unit_price: number;
+        }>;
     }) => {
-        const response = await apiClient.post('/purchases', data);
+        const payload = {
+            purchase_number: `PUR-${Date.now()}`,
+            status: 'pending',
+            ...data,
+        };
+
+        const response = await apiClient.post('/purchases', payload);
         return response.data;
     },
 };
 
 // Dashboard API
 export const dashboardAPI = {
+    /**
+     * Get all main KPIs (11 total)
+     */
     getKPIs: async () => {
         const response = await apiClient.get('/dashboard/kpis');
         return response.data;
     },
 
-    getSalesByDay: async () => {
-        const response = await apiClient.get('/dashboard/sales-by-day');
+    /**
+     * Get sales grouped by day
+     * @param days - Number of days to look back (1-365, default: 30)
+     */
+    getSalesByDay: async (days: number = 30) => {
+        const response = await apiClient.get(`/dashboard/sales-by-day?days=${days}`);
         return response.data;
     },
 
-    getPurchasesByDay: async () => {
-        const response = await apiClient.get('/dashboard/purchases-by-day');
+    /**
+     * Get purchases grouped by day
+     * @param days - Number of days to look back (1-365, default: 30)
+     */
+    getPurchasesByDay: async (days: number = 30) => {
+        const response = await apiClient.get(`/dashboard/purchases-by-day?days=${days}`);
         return response.data;
     },
 
-    getTopProducts: async () => {
-        const response = await apiClient.get('/dashboard/top-products');
+    /**
+     * Get sales distribution by payment status
+     */
+    getSalesByStatus: async () => {
+        const response = await apiClient.get('/dashboard/sales-by-status');
+        return response.data;
+    },
+
+    /**
+     * Get top selling products
+     * @param limit - Number of top products to return (1-50, default: 5)
+     */
+    getTopProducts: async (limit: number = 5) => {
+        const response = await apiClient.get(`/dashboard/top-products?limit=${limit}`);
         return response.data;
     },
 };

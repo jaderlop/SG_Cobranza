@@ -18,7 +18,7 @@ interface Supplier {
 interface PurchaseItem {
     product_id: number;
     quantity: number;
-    unit_cost: number;
+    unit_price: number;
 }
 
 export default function PurchasesPage() {
@@ -57,7 +57,7 @@ export default function PurchasesPage() {
                 {
                     product_id: products[0].id,
                     quantity: 1,
-                    unit_cost: products[0].cost || products[0].price * 0.7,
+                    unit_price: products[0].cost || products[0].price * 0.7,
                 },
             ]);
         }
@@ -69,7 +69,7 @@ export default function PurchasesPage() {
 
     const updateItem = (
         index: number,
-        field: 'product_id' | 'quantity' | 'unit_cost',
+        field: 'product_id' | 'quantity' | 'unit_price',
         value: number
     ) => {
         const newItems = [...selectedItems];
@@ -78,7 +78,7 @@ export default function PurchasesPage() {
     };
 
     const calculateTotal = () => {
-        return selectedItems.reduce((sum, item) => sum + item.quantity * item.unit_cost, 0);
+        return selectedItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -92,15 +92,26 @@ export default function PurchasesPage() {
         setLoading(true);
         try {
             await purchasesAPI.create({
+                purchase_number: `PO-${Date.now()}`, // o lo que quieras como formato
                 supplier_id: selectedSupplierId,
-                items: selectedItems,
+                purchase_date: new Date().toISOString().slice(0, 10),
+                due_date: new Date().toISOString().slice(0, 10),
+                status: 'pending',
+                notes: '',
+                items: selectedItems.map(item => ({
+                    product_id: item.product_id,
+                    quantity: item.quantity,
+                    unit_price: item.unit_price,
+                })),
             });
+
             setSuccess(true);
             setSelectedItems([]);
             await loadData();
             setTimeout(() => setSuccess(false), 3000);
         } catch (error: any) {
-            alert(error.response?.data?.detail || 'Error al crear compra');
+            console.error(error.response?.data);
+            alert(JSON.stringify(error.response?.data, null, 2) || 'Error al crear compra');
         } finally {
             setLoading(false);
         }
@@ -178,9 +189,9 @@ export default function PurchasesPage() {
                                                 step="0.01"
                                                 min="0"
                                                 className="input text-sm"
-                                                value={item.unit_cost}
+                                                value={item.unit_price}
                                                 onChange={(e) =>
-                                                    updateItem(index, 'unit_cost', parseFloat(e.target.value))
+                                                    updateItem(index, 'unit_price', parseFloat(e.target.value))
                                                 }
                                                 placeholder="Costo"
                                             />

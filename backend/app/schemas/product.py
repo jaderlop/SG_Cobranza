@@ -36,6 +36,7 @@ class ProductResponse(ProductBase):
     sku: Optional[str]
     stock_quantity: int
     is_active: Optional[bool] = True
+    price: float
     created_at: datetime
 
     class Config:
@@ -47,7 +48,7 @@ class ProductWithStock(BaseModel):
     name: str
     sku: str
     category: Optional[str] = None
-    price: Decimal
+    price: float
     stock_quantity: int
     stock_status: str
     min_stock_level: int

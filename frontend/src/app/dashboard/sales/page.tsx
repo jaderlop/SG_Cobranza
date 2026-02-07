@@ -13,6 +13,7 @@ interface Product {
 interface SaleItem {
     product_id: number;
     quantity: number;
+    unit_price: number;
 }
 
 export default function SalesPage() {
@@ -41,7 +42,7 @@ export default function SalesPage() {
 
     const addItem = () => {
         if (products.length > 0) {
-            setSelectedItems([...selectedItems, { product_id: products[0].id, quantity: 1 }]);
+            setSelectedItems([...selectedItems, { product_id: products[0].id, quantity: 1, unit_price: products[0].price }]);
         }
     };
 
@@ -49,11 +50,26 @@ export default function SalesPage() {
         setSelectedItems(selectedItems.filter((_, i) => i !== index));
     };
 
-    const updateItem = (index: number, field: 'product_id' | 'quantity', value: number) => {
+    const updateItem = (
+        index: number,
+        field: 'product_id' | 'quantity',
+        value: number
+    ) => {
         const newItems = [...selectedItems];
-        newItems[index][field] = value;
+
+        if (field === 'product_id') {
+            const product = products.find(p => p.id === value);
+            newItems[index].product_id = value;
+            newItems[index].unit_price = product?.price || 0;
+        }
+
+        if (field === 'quantity') {
+            newItems[index].quantity = value;
+        }
+
         setSelectedItems(newItems);
     };
+
 
     const calculateTotal = () => {
         return selectedItems.reduce((sum, item) => {
@@ -70,19 +86,32 @@ export default function SalesPage() {
             return;
         }
 
+        const payload = {
+            sale_number: `S-${Date.now()}`,
+            client_id: 1, // luego lo haces seleccionable
+            sale_date: new Date().toISOString().slice(0, 10),
+            due_date: new Date().toISOString().slice(0, 10),
+            status: 'pending',
+            payment_status: 'unpaid',
+            notes: '',
+            items: selectedItems,
+        };
+
         setLoading(true);
         try {
-            await salesAPI.create({ items: selectedItems });
+            await salesAPI.create(payload);
             setSuccess(true);
             setSelectedItems([]);
             await loadData();
             setTimeout(() => setSuccess(false), 3000);
         } catch (error: any) {
+            console.error(error.response?.data);
             alert(error.response?.data?.detail || 'Error al crear venta');
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <div>
